@@ -1,0 +1,83 @@
+import anvil.js
+from anvil.js.window import hasAlgo, algoConnect, algoAccounts, algoTxParams, algoSignAssetTx, algoSendTx
+
+class AlgoSignerClient:
+  
+    @staticmethod
+    def has_algo_signer():
+        status = hasAlgo()
+        return status
+
+    @staticmethod
+    def algo_signer_connect():
+        connection = algoConnect()
+        return connection
+
+    @staticmethod
+    def algo_signer_accounts():
+        accounts = algoAccounts()
+
+        wallets = []
+        for item in accounts:
+            wallets.append(item["address"])
+
+        return wallets
+
+    @staticmethod
+    def algo_signer_tx_params():
+        try:
+            tx_params_response = algoTxParams()
+
+            return (
+                {
+                    "consensus-version": tx_params_response["consensus-version"],
+                    "fee": tx_params_response["fee"],
+                    "min-fee": tx_params_response["min-fee"],
+                    "last-round": tx_params_response["last-round"],
+                    "genesis-id": tx_params_response["genesis-id"],
+                    "genesis-hash": tx_params_response["genesis-hash"],
+                },
+                None,
+            )
+        except Exception as exp:
+            return ({}, exp)
+
+    @staticmethod
+    def algo_signer_sign_asset_tx(
+        from_wallet,
+        asset_name,
+        asset_unit_name,
+        asset_total,
+        asset_decimals,
+        note,
+        tx_params,
+    ):
+        try:
+            signed_tx = anvil.js.call(
+                algoSignAssetTx,
+                from_wallet,
+                asset_name,
+                asset_unit_name,
+                asset_total,
+                asset_decimals,
+                note,
+                tx_params,
+            )
+            print(signed_tx)
+            return ({"txID": signed_tx["txID"], "blob": signed_tx["blob"]}, None)
+        except Exception as exp:
+            return ({}, exp)
+
+    @staticmethod
+    def algo_signer_send_tx(signed_tx):
+        try:
+            send_tx = anvil.js.call(algoSendTx, signed_tx)
+
+            return (
+                {
+                    "txID": send_tx["txId"],
+                },
+                None,
+            )
+        except Exception as exp:
+            return ({}, exp)
