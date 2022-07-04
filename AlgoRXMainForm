@@ -1,0 +1,146 @@
+import math
+from ._anvil_designer import AlgoRXMainFormTemplate
+from anvil import *
+from ..AlgoSignerClient import AlgoSignerClient
+from time import sleep
+
+
+class AlgoRXMainForm(AlgoRXMainFormTemplate):
+  
+    def __init__(self, **properties):
+        # Set Form properties and Data Bindings.
+        self.init_components(**properties)
+
+        self.asset_name_textbox.visible = False
+        self.unit_name_textbox.visible = False
+        self.total_units_textbox.visible = False
+        self.decimals_textbox.visible = False
+        self.note_textbox.visible = False
+        self.mint_button.visible = False
+        self.wallets_dropdown.visible = False
+
+    def _reload_mint_button_state(self):
+        has_asset_name = self.asset_name_textbox.text
+        has_unit_name = self.unit_name_textbox.text
+        has_total_units = self.total_units_textbox.text
+        has_decimals = self.decimals_textbox.text
+        has_note = self.note_textbox.text
+
+        self.mint_button.enabled = all(
+            [has_asset_name, has_unit_name, has_total_units, has_decimals, has_note]
+        )
+
+    def connect_button_click(self, **event_args):
+        """This method is called when the button is clicked"""
+        has_algosigner = AlgoSignerClient.has_algo_signer()
+
+        if not has_algosigner:
+            alert(
+                "Make sure to use a browser that supports Algosigner extension!",
+                title="Warning",
+                dismissible=True,
+            )
+            return
+
+        # 1. Connect algosigner
+        AlgoSignerClient.algo_signer_connect()
+
+        # 2. Load wallets
+        self.wallets_dropdown.items = []
+        self.wallets_dropdown.items = AlgoSignerClient.algo_signer_accounts()
+
+        # 3. Enable form
+        self.connect_button.visible = False
+        self.asset_name_textbox.visible = True
+        self.unit_name_textbox.visible = True
+        self.total_units_textbox.visible = True
+        self.decimals_textbox.visible = True
+        self.note_textbox.visible = True
+        self.mint_button.visible = True
+        self.wallets_dropdown.visible = True
+
+    def note_textbox_change(self, **event_args):
+        """This method is called when the text in this text box is edited"""
+        self._reload_mint_button_state()
+
+    def decimals_textbox_change(self, **event_args):
+        """This method is called when the text in this text box is edited"""
+        self._reload_mint_button_state()
+
+    def total_units_textbox_change(self, **event_args):
+        """This method is called when the text in this text box is edited"""
+        self._reload_mint_button_state()
+
+    def unit_name_textbox_change(self, **event_args):
+        """This method is called when the text in this text box is edited"""
+        self._reload_mint_button_state()
+
+    def asset_name_textbox_change(self, **event_args):
+        """This method is called when the user presses Enter in this text box"""
+        self._reload_mint_button_state()
+
+    def mint_button_click(self, **event_args):
+        """This method is called when the button is clicked"""
+        asset_name = self.asset_name_textbox.text
+        unit_name = self.unit_name_textbox.text
+        total_units = int(self.total_units_textbox.text) * math.pow(10, 2)
+        decimals = int(self.decimals_textbox.text)
+        note = self.note_textbox.text
+        wallet = self.wallets_dropdown.selected_value
+
+        
+        # 1. Get tx params
+        tx_params, tx_params_error = AlgoSignerClient.algo_signer_tx_params()
+        sleep(1)
+        
+        if tx_params_error:
+            alert(
+                f"Error occured in algosigner, please try again! {tx_params_error}",
+                title="Error",
+                dismissible=True,
+            )
+            return
+
+        # 2. Sign transaction
+
+        signed_tx, signed_tx_error = AlgoSignerClient.algo_signer_sign_asset_tx(
+            wallet, asset_name, unit_name, total_units, decimals, note, tx_params
+        )
+        sleep(1)
+        
+        if signed_tx_error:
+            print(signed_tx_error)
+            alert(
+                f"Error occured in algosigner, please try again! {signed_tx_error}",
+                title="Error",
+                dismissible=True,
+            )
+            return
+
+        # 3. Send transaction
+
+        send_tx_response, send_tx_response_error = AlgoSignerClient.algo_signer_send_tx(
+            signed_tx
+        )
+        sleep(1)
+        
+        if send_tx_response_error:
+            print(send_tx_response_error)
+            alert(
+                f"Error occured in algosigner, please try again! {send_tx_response_error}",
+                title="Error",
+                dismissible=True,
+            )
+            return
+
+        # 4. Inform user about successfull asset minting
+        alert(
+            Label(text=f'Here is your transaction id : {send_tx_response}', role="text-wrap"),
+            title="Success! Here is your asset info:",
+            dismissible=True,
+        )
+
+        # 5. Thats it! You can now optionally await for a transaction
+        #              but this is not covered in this tutorial
+      
+
