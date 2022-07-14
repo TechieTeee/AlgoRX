@@ -19,13 +19,11 @@ Once signed in with AlgoSigner, the pharma manufacturing rep can mint asseets fo
 
 # Submission Details
 * [Video Demo](https://www.loom.com/share/54371311325841958b571a70abb6fab0)
-* [Pitch Deck]()
+* [Pitch Deck](https://drive.google.com/file/d/1HWtggcchcZRjr3WDuNli16pYjsair7Fo/view?usp=sharing)
 
 
-
-
-
-
+# Live Demo Link for Dapp
+* [Demo Link](https://74wiztc4lqnixr3l.anvil.app/CNQEW2VZV4SVGPFWBIXNB7OG)
 
 
 
