@@ -17,6 +17,9 @@ Once signed in with AlgoSigner, the pharma manufacturing rep can mint asseets fo
 * Python and Anvil Python Library
 
 
+# Submission Details
+* [Video Demo](https://www.loom.com/share/54371311325841958b571a70abb6fab0)
+* [Pitch Deck]()
 
 
 
